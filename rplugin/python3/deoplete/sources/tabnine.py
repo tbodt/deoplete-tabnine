@@ -10,9 +10,11 @@ class Source(Base):
         super().__init__(vim)
         self.name = 'tabnine'
         self.mark = '[TN]'
-        self.rank = 500
+        self.rank = 1000
         self.proc = None
+        self.min_pattern_length = 1
         self.is_debug_enabled = True
+        self.is_volatile = True
 
         self._install_dir = os.path.dirname(os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
@@ -42,22 +44,29 @@ class Source(Base):
         if len(response['promotional_message']):
             self.print('Promotional message from TabNine: {}'.format(response['promotional_message'].join('\n')))
         candidates = []
+        self.debug(repr(response))
         for result in response['results']:
             candidate = {}
             word = result['result']
             prefix_to_substitute = result['prefix_to_substitute']
-            candidate['word'] = candidate['abbr'] = word
+            candidate['word'] = word
             if word.endswith(prefix_to_substitute):
                 candidate['word'] = word[:len(word)-len(prefix_to_substitute)]
+                candidate['abbr'] = word
             candidates.append(candidate)
-        self.info(repr(candidates))
+        self.debug(repr(candidates))
         return candidates
+
+    def on_post_filter(self, context):
+        self.debug('filtering')
+        return self.gather_candidates(context)
 
     def request(self, name, **params):
         req = {
             'version': '0.6.0',
             'request': {name: params}
         }
+        self.debug(repr(req))
         proc = self.get_running_tabnine()
         if proc is None:
             return
