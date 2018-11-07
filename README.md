@@ -2,7 +2,7 @@
 
 A [Deoplete][] source for [TabNine][].
 
-To install with vim-plug, add this to your vimrc:
+To install with vim-plug, first install Deoplete, then add this to your vimrc:
 
 ```vim
 Plug 'tbodt/deoplete-tabnine', { 'do': './install.sh' }
