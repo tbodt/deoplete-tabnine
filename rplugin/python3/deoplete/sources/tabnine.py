@@ -42,7 +42,7 @@ class Source(Base):
             return []
 
         if len(response['promotional_message']):
-            self.print('Promotional message from TabNine: {}'.format(response['promotional_message'].join('\n')))
+            self.print(' '.join(response['promotional_message']))
         candidates = []
         self.debug(repr(response))
         for result in response['results']:
@@ -75,7 +75,6 @@ class Source(Base):
         return json.loads(proc.stdout.readline())
 
     def restart(self):
-        self.print('starting TabNine')
         if self.proc is not None:
             self.proc.terminate()
             self.proc = None
