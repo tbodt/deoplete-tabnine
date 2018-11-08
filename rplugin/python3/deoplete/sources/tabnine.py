@@ -78,7 +78,7 @@ class Source(Base):
         if self.proc is not None:
             self.proc.terminate()
             self.proc = None
-        binary_dir = os.path.join(self._install_dir, 'bin')
+        binary_dir = os.path.join(self._install_dir, 'binaries')
         path = get_tabnine_path(binary_dir)
         if path is None:
             self.print_error('no TabNine binary found')

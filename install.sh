@@ -12,9 +12,9 @@ triple="$(uname -m)-$platform"
 
 cd $(dirname $0)
 path=$version/$triple/TabNine
-if [ -f bin/$path ]; then
+if [ -f binaries/$path ]; then
     exit
 fi
 echo Downloading version $version
-curl https://update.tabnine.com/$path --create-dirs -o bin/$path
-chmod +x bin/$path
+curl https://update.tabnine.com/$path --create-dirs -o binaries/$path
+chmod +x binaries/$path
