@@ -69,9 +69,9 @@ class Source(Base):
         proc = self.get_running_tabnine()
         if proc is None:
             return
-        proc.stdin.write(json.dumps(req) + '\n')
+        proc.stdin.write((json.dumps(req) + '\n').encode('utf8'))
         proc.stdin.flush()
-        return json.loads(proc.stdout.readline())
+        return json.loads(proc.stdout.readline().decode('utf8'))
 
     def restart(self):
         if self.proc is not None:
@@ -87,7 +87,6 @@ class Source(Base):
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            encoding='utf8',
         )
 
     def get_running_tabnine(self):
