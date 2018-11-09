@@ -12,6 +12,9 @@ class Source(Base):
         self.mark = '[TN]'
         self.rank = 1000
         self.proc = None
+        self.matchers = []
+        self.sorters = []
+        self.converters = []
         self.min_pattern_length = 1
         self.is_debug_enabled = True
         self.is_volatile = True
@@ -56,10 +59,6 @@ class Source(Base):
             candidates.append(candidate)
         self.debug(repr(candidates))
         return candidates
-
-    def on_post_filter(self, context):
-        self.debug('filtering')
-        return self.gather_candidates(context)
 
     def request(self, name, **params):
         req = {
