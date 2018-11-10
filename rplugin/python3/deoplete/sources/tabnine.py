@@ -2,8 +2,10 @@ import json
 import os
 import platform
 import subprocess
-from .base import Base
-from ..util import getlines
+
+from deoplete.source.base import Base
+from deoplete.util import getlines
+
 
 class Source(Base):
     def __init__(self, vim):
@@ -44,7 +46,7 @@ class Source(Base):
         if response is None:
             return []
 
-        if len(response['promotional_message']):
+        if response['promotional_message']:
             self.print(' '.join(response['promotional_message']))
         candidates = []
         self.debug(repr(response))
@@ -83,7 +85,8 @@ class Source(Base):
             self.print_error('no TabNine binary found')
             return
         self.proc = subprocess.Popen(
-            [path, '--client', 'sublime', '--log-file-path', os.path.join(self._install_dir, 'tabnine.log')],
+            [path, '--client', 'sublime', '--log-file-path',
+             os.path.join(self._install_dir, 'tabnine.log')],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -93,9 +96,11 @@ class Source(Base):
         if self.proc is None:
             self.restart()
         if self.proc is not None and self.proc.poll():
-            self.print_error('TabNine exited with code {}'.format(self.proc.returncode))
+            self.print_error(
+                'TabNine exited with code {}'.format(self.proc.returncode))
             self.restart()
         return self.proc
+
 
 # Adapted from the sublime plugin
 def parse_semver(s):
@@ -103,6 +108,7 @@ def parse_semver(s):
         return [int(x) for x in s.split('.')]
     except ValueError:
         return []
+
 
 def get_tabnine_path(binary_dir):
     SYSTEM_MAPPING = {
@@ -112,7 +118,8 @@ def get_tabnine_path(binary_dir):
     versions = os.listdir(binary_dir)
     versions.sort(key=parse_semver, reverse=True)
     for version in versions:
-        triple = '{}-{}'.format(platform.machine(), SYSTEM_MAPPING[platform.system()])
+        triple = '{}-{}'.format(platform.machine(),
+                                SYSTEM_MAPPING[platform.system()])
         path = os.path.join(binary_dir, version, triple, 'TabNine')
         if os.path.isfile(path):
             return path
