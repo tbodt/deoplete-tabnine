@@ -114,12 +114,25 @@ def get_tabnine_path(binary_dir):
     SYSTEM_MAPPING = {
         'Darwin': 'apple-darwin',
         'Linux': 'unknown-linux-gnu',
+        'Windows': 'pc-windows-gnu'
     }
     versions = os.listdir(binary_dir)
     versions.sort(key=parse_semver, reverse=True)
     for version in versions:
-        triple = '{}-{}'.format(platform.machine(),
+        triple = '{}-{}'.format(parse_architecture(platform.machine()),
                                 SYSTEM_MAPPING[platform.system()])
-        path = os.path.join(binary_dir, version, triple, 'TabNine')
+        path = os.path.join(binary_dir, version, triple, executable_name('TabNine'))
         if os.path.isfile(path):
             return path
+
+def parse_architecture(arch):
+    if arch == 'AMD64':
+        return 'x86_64'
+    else:
+        return arch
+
+def executable_name(name):
+    if platform.system() == 'Windows':
+        return name + '.exe'
+    else:
+        return name
