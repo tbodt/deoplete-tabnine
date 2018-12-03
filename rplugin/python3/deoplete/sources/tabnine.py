@@ -10,17 +10,17 @@ from deoplete.util import getlines
 class Source(Base):
     def __init__(self, vim):
         super().__init__(vim)
+
         self.name = 'tabnine'
         self.mark = '[TN]'
         self.rank = 1000
-        self.proc = None
         self.matchers = []
         self.sorters = []
         self.converters = []
         self.min_pattern_length = 1
-        self.is_debug_enabled = True
         self.is_volatile = True
 
+        self._proc = None
         self._install_dir = os.path.dirname(os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
 
@@ -76,15 +76,15 @@ class Source(Base):
         return json.loads(proc.stdout.readline().decode('utf8'))
 
     def restart(self):
-        if self.proc is not None:
-            self.proc.terminate()
-            self.proc = None
+        if self._proc is not None:
+            self._proc.terminate()
+            self._proc = None
         binary_dir = os.path.join(self._install_dir, 'binaries')
         path = get_tabnine_path(binary_dir)
         if path is None:
             self.print_error('no TabNine binary found')
             return
-        self.proc = subprocess.Popen(
+        self._proc = subprocess.Popen(
             [path, '--client', 'sublime', '--log-file-path',
              os.path.join(self._install_dir, 'tabnine.log')],
             stdin=subprocess.PIPE,
@@ -93,13 +93,13 @@ class Source(Base):
         )
 
     def get_running_tabnine(self):
-        if self.proc is None:
+        if self._proc is None:
             self.restart()
-        if self.proc is not None and self.proc.poll():
+        if self._proc is not None and self._proc.poll():
             self.print_error(
-                'TabNine exited with code {}'.format(self.proc.returncode))
+                'TabNine exited with code {}'.format(self._proc.returncode))
             self.restart()
-        return self.proc
+        return self._proc
 
 
 # Adapted from the sublime plugin
