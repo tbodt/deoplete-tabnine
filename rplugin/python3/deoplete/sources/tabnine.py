@@ -18,7 +18,7 @@ class Source(Base):
         self.sorters = []
         self.converters = []
         self.is_volatile = True
-        self.input_pattern = r'.$'
+        self.input_pattern = r'[^\w\s]$'
 
         self._proc = None
         self._install_dir = os.path.dirname(os.path.dirname(os.path.dirname(
