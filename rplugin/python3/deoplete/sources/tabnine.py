@@ -82,8 +82,9 @@ class Source(Base):
         for result in response['results']:
             candidate = {}
             word = result['new_prefix']
-            if result['old_suffix']:
-                candidate['word'] = word[:len(word)-len(result['old_suffix'])]
+            suffix = result['old_suffix']
+            if suffix and word.endswith(suffix):
+                candidate['word'] = word[:len(word)-len(suffix)]
                 candidate['word'] += result['new_suffix']
                 candidate['abbr'] = word
             else:
