@@ -6,6 +6,34 @@ import subprocess
 from deoplete.source.base import Base
 from deoplete.util import getlines
 
+LSP_KINDS = [
+    'Text',
+    'Method',
+    'Function',
+    'Constructor',
+    'Field',
+    'Variable',
+    'Class',
+    'Interface',
+    'Module',
+    'Property',
+    'Unit',
+    'Value',
+    'Enum',
+    'Keyword',
+    'Snippet',
+    'Color',
+    'File',
+    'Reference',
+    'Folder',
+    'EnumMember',
+    'Constant',
+    'Struct',
+    'Event',
+    'Operator',
+    'TypeParameter',
+]
+
 
 class Source(Base):
     def __init__(self, vim):
@@ -47,25 +75,30 @@ class Source(Base):
         if response is None:
             return []
 
-        if response['promotional_message']:
+        if 'promotional_message' in response:
             self.print(' '.join(response['promotional_message']))
         candidates = []
         self.debug(repr(response))
         for result in response['results']:
             candidate = {}
-            word = result['result']
-            prefix_to_substitute = result['prefix_to_substitute']
-            candidate['word'] = word
-            if word.endswith(prefix_to_substitute):
-                candidate['word'] = word[:len(word)-len(prefix_to_substitute)]
+            word = result['new_prefix']
+            if result['old_suffix']:
+                candidate['word'] = word[:len(word)-len(result['old_suffix'])]
+                candidate['word'] += result['new_suffix']
                 candidate['abbr'] = word
+            else:
+                candidate['word'] = word
+            if result.get('detailed', ''):
+                candidate['menu'] = result['detailed']
+            if result.get('kind', ''):
+                candidate['kind'] = LSP_KINDS[result['kind'] - 1]
             candidates.append(candidate)
         self.debug(repr(candidates))
         return candidates
 
     def request(self, name, **params):
         req = {
-            'version': '0.6.0',
+            'version': '1.0.0',
             'request': {name: params}
         }
         self.debug(repr(req))
