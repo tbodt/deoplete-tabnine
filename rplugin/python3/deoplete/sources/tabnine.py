@@ -89,9 +89,9 @@ class Source(Base):
                 candidate['abbr'] = word
             else:
                 candidate['word'] = word
-            if result.get('detailed', ''):
+            if result.get('detailed'):
                 candidate['menu'] = result['detailed']
-            if result.get('kind', ''):
+            if result.get('kind'):
                 candidate['kind'] = LSP_KINDS[result['kind'] - 1]
             candidates.append(candidate)
         self.debug(repr(candidates))
