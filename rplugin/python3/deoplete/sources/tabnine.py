@@ -1,4 +1,5 @@
 import json
+import re
 import os
 import platform
 import subprocess
@@ -52,6 +53,10 @@ class Source(Base):
         self._proc = None
         self._install_dir = os.path.dirname(os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
+
+    def get_complete_position(self, context):
+        m = re.search('\w*$', context['input'])
+        return m.start() if m else -1
 
     def gather_candidates(self, context):
         LINE_LIMIT = 1000
