@@ -48,37 +48,24 @@ class Source(Base):
         self.converters = []
         self.min_pattern_length = 1
         self.is_volatile = True
-        self.input_pattern = r'\S*$'
+        self.input_pattern = r'[^\w\s]$'
 
         self._proc = None
+        self._response = None
         self._install_dir = os.path.dirname(os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
 
     def get_complete_position(self, context):
-        m = re.search('\w*$', context['input'])
-        return m.start() if m else -1
+        m = re.search('\s+$', context['input'])
+        if m:
+            return -1
+        self._response = self._get_response(context)
+        if self._response is None:
+            return -1
+        return len(context['input']) - len(self._response['old_prefix'])
 
     def gather_candidates(self, context):
-        LINE_LIMIT = 1000
-        _, line, col, _ = context['position']
-        last_line = self.vim.call('line', '$')
-        before_line = max(1, line - LINE_LIMIT)
-        before_lines = getlines(self.vim, before_line, line)
-        before_lines[-1] = before_lines[-1][:col-1]
-        after_line = min(last_line, line + LINE_LIMIT)
-        after_lines = getlines(self.vim, line, after_line)
-        after_lines[0] = after_lines[0][col:]
-        response = self.request(
-            'Autocomplete',
-            filename=context['bufpath'],
-            before='\n'.join(before_lines),
-            after='\n'.join(after_lines),
-            region_includes_beginning=(before_line == 1),
-            region_includes_end=(after_line == last_line),
-            max_num_results=10,
-        )
-        if response is None:
-            return []
+        response = self._response
 
         if 'promotional_message' in response:
             self.print(' '.join(response['promotional_message']))
@@ -102,20 +89,40 @@ class Source(Base):
         self.debug(repr(candidates))
         return candidates
 
-    def request(self, name, **params):
+    def _get_response(self, context):
+        LINE_LIMIT = 1000
+        _, line, col, _ = context['position']
+        last_line = self.vim.call('line', '$')
+        before_line = max(1, line - LINE_LIMIT)
+        before_lines = getlines(self.vim, before_line, line)
+        before_lines[-1] = before_lines[-1][:col-1]
+        after_line = min(last_line, line + LINE_LIMIT)
+        after_lines = getlines(self.vim, line, after_line)
+        after_lines[0] = after_lines[0][col:]
+        return self._request(
+            'Autocomplete',
+            filename=context['bufpath'],
+            before='\n'.join(before_lines),
+            after='\n'.join(after_lines),
+            region_includes_beginning=(before_line == 1),
+            region_includes_end=(after_line == last_line),
+            max_num_results=10,
+        )
+
+    def _request(self, name, **params):
         req = {
             'version': '1.0.0',
             'request': {name: params}
         }
         self.debug(repr(req))
-        proc = self.get_running_tabnine()
+        proc = self._get_running_tabnine()
         if proc is None:
             return
         proc.stdin.write((json.dumps(req) + '\n').encode('utf8'))
         proc.stdin.flush()
         return json.loads(proc.stdout.readline().decode('utf8'))
 
-    def restart(self):
+    def _restart(self):
         if self._proc is not None:
             self._proc.terminate()
             self._proc = None
@@ -132,13 +139,13 @@ class Source(Base):
             stderr=subprocess.STDOUT,
         )
 
-    def get_running_tabnine(self):
+    def _get_running_tabnine(self):
         if self._proc is None:
-            self.restart()
+            self._restart()
         if self._proc is not None and self._proc.poll():
             self.print_error(
                 'TabNine exited with code {}'.format(self._proc.returncode))
-            self.restart()
+            self._restart()
         return self._proc
 
 
