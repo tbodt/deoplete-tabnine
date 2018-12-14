@@ -1,10 +1,39 @@
 import json
+import re
 import os
 import platform
 import subprocess
 
 from deoplete.source.base import Base
 from deoplete.util import getlines
+
+LSP_KINDS = [
+    'Text',
+    'Method',
+    'Function',
+    'Constructor',
+    'Field',
+    'Variable',
+    'Class',
+    'Interface',
+    'Module',
+    'Property',
+    'Unit',
+    'Value',
+    'Enum',
+    'Keyword',
+    'Snippet',
+    'Color',
+    'File',
+    'Reference',
+    'Folder',
+    'EnumMember',
+    'Constant',
+    'Struct',
+    'Event',
+    'Operator',
+    'TypeParameter',
+]
 
 
 class Source(Base):
@@ -19,13 +48,48 @@ class Source(Base):
         self.converters = []
         self.min_pattern_length = 1
         self.is_volatile = True
-        self.input_pattern = r'\S*$'
+        self.input_pattern = r'[^\w\s]$'
 
         self._proc = None
+        self._response = None
         self._install_dir = os.path.dirname(os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
 
+    def get_complete_position(self, context):
+        m = re.search('\s+$', context['input'])
+        if m:
+            return -1
+        self._response = self._get_response(context)
+        if self._response is None:
+            return -1
+        return len(context['input']) - len(self._response['old_prefix'])
+
     def gather_candidates(self, context):
+        response = self._response
+
+        if 'promotional_message' in response:
+            self.print(' '.join(response['promotional_message']))
+        candidates = []
+        self.debug(repr(response))
+        for result in response['results']:
+            candidate = {}
+            word = result['new_prefix']
+            suffix = result['old_suffix']
+            if suffix and word.endswith(suffix):
+                candidate['word'] = word[:len(word)-len(suffix)]
+                candidate['word'] += result['new_suffix']
+                candidate['abbr'] = word
+            else:
+                candidate['word'] = word
+            if result.get('detailed'):
+                candidate['menu'] = result['detailed']
+            if result.get('kind'):
+                candidate['kind'] = LSP_KINDS[result['kind'] - 1]
+            candidates.append(candidate)
+        self.debug(repr(candidates))
+        return candidates
+
+    def _get_response(self, context):
         LINE_LIMIT = 1000
         _, line, col, _ = context['position']
         last_line = self.vim.call('line', '$')
@@ -35,7 +99,7 @@ class Source(Base):
         after_line = min(last_line, line + LINE_LIMIT)
         after_lines = getlines(self.vim, line, after_line)
         after_lines[0] = after_lines[0][col:]
-        response = self.request(
+        return self._request(
             'Autocomplete',
             filename=context['bufpath'],
             before='\n'.join(before_lines),
@@ -44,39 +108,21 @@ class Source(Base):
             region_includes_end=(after_line == last_line),
             max_num_results=10,
         )
-        if response is None:
-            return []
 
-        if response['promotional_message']:
-            self.print(' '.join(response['promotional_message']))
-        candidates = []
-        self.debug(repr(response))
-        for result in response['results']:
-            candidate = {}
-            word = result['result']
-            prefix_to_substitute = result['prefix_to_substitute']
-            candidate['word'] = word
-            if word.endswith(prefix_to_substitute):
-                candidate['word'] = word[:len(word)-len(prefix_to_substitute)]
-                candidate['abbr'] = word
-            candidates.append(candidate)
-        self.debug(repr(candidates))
-        return candidates
-
-    def request(self, name, **params):
+    def _request(self, name, **params):
         req = {
-            'version': '0.6.0',
+            'version': '1.0.0',
             'request': {name: params}
         }
         self.debug(repr(req))
-        proc = self.get_running_tabnine()
+        proc = self._get_running_tabnine()
         if proc is None:
             return
         proc.stdin.write((json.dumps(req) + '\n').encode('utf8'))
         proc.stdin.flush()
         return json.loads(proc.stdout.readline().decode('utf8'))
 
-    def restart(self):
+    def _restart(self):
         if self._proc is not None:
             self._proc.terminate()
             self._proc = None
@@ -93,13 +139,13 @@ class Source(Base):
             stderr=subprocess.STDOUT,
         )
 
-    def get_running_tabnine(self):
+    def _get_running_tabnine(self):
         if self._proc is None:
-            self.restart()
+            self._restart()
         if self._proc is not None and self._proc.poll():
             self.print_error(
                 'TabNine exited with code {}'.format(self._proc.returncode))
-            self.restart()
+            self._restart()
         return self._proc
 
 
