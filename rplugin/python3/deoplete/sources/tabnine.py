@@ -48,7 +48,7 @@ class Source(Base):
         self.converters = []
         self.min_pattern_length = 1
         self.is_volatile = True
-        self.input_pattern = r'[^\w\s]$'
+        self.input_pattern = r'[^\w\s]$|TabNine::\w*$'
 
         self._proc = None
         self._response = None
