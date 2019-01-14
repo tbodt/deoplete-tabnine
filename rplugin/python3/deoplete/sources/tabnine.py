@@ -56,13 +56,16 @@ class Source(Base):
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
 
     def get_complete_position(self, context):
-        m = re.search('\s+$', context['input'])
+        m = re.search(r'\s+$', context['input'])
         if m:
             return -1
         self._response = self._get_response(context)
         if self._response is None:
             return -1
-        return len(context['input']) - len(self._response['old_prefix'])
+        old_prefix = self._response['old_prefix']
+        if not context['input'].endswith(old_prefix):
+            return -1
+        return len(context['input']) - len(old_prefix)
 
     def gather_candidates(self, context):
         response = self._response
@@ -120,7 +123,13 @@ class Source(Base):
             return
         proc.stdin.write((json.dumps(req) + '\n').encode('utf8'))
         proc.stdin.flush()
-        return json.loads(proc.stdout.readline().decode('utf8'))
+        r = {}
+        output = proc.stdout.readline().decode('utf8')
+        try:
+            r = json.loads(output)
+        except json.JSONDecodeError:
+            self.print_error('Tabnine output is corrupted: ' + output)
+        return r
 
     def _restart(self):
         if self._proc is not None:
@@ -136,7 +145,7 @@ class Source(Base):
              os.path.join(self._install_dir, 'tabnine.log')],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.DEVNULL,
         )
 
     def _get_running_tabnine(self):
@@ -168,15 +177,18 @@ def get_tabnine_path(binary_dir):
     for version in versions:
         triple = '{}-{}'.format(parse_architecture(platform.machine()),
                                 SYSTEM_MAPPING[platform.system()])
-        path = os.path.join(binary_dir, version, triple, executable_name('TabNine'))
+        path = os.path.join(binary_dir, version, triple,
+                            executable_name('TabNine'))
         if os.path.isfile(path):
             return path
+
 
 def parse_architecture(arch):
     if arch == 'AMD64':
         return 'x86_64'
     else:
         return arch
+
 
 def executable_name(name):
     if platform.system() == 'Windows':
