@@ -145,7 +145,7 @@ class Source(Base):
              os.path.join(self._install_dir, 'tabnine.log')],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.DEVNULL,
         )
 
     def _get_running_tabnine(self):
