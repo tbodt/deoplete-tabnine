@@ -45,7 +45,10 @@ class Source(Base):
         self.rank = 1000
         self.matchers = []
         self.sorters = []
-        self.converters = []
+        self.converters = [
+            'converter_remove_overlap',
+            'converter_truncate_info',
+        ]
         self.min_pattern_length = 1
         self.is_volatile = True
         self.input_pattern = r'[^\w\s]$|TabNine::\w*$'
@@ -84,8 +87,10 @@ class Source(Base):
                 candidate['abbr'] = word
             else:
                 candidate['word'] = word
-            if result.get('detailed'):
-                candidate['menu'] = result['detailed']
+            if result.get('detail'):
+                candidate['menu'] = result['detail']
+            if result.get('documentation'):
+                candidate['info'] = result['documentation']
             if result.get('kind'):
                 candidate['kind'] = LSP_KINDS[result['kind'] - 1]
             candidates.append(candidate)
