@@ -87,9 +87,7 @@ class Source(Base):
             if result.get('detail'):
                 candidate['menu'] = result['detail']
             if result.get('documentation'):
-                info = result['documentation'][:256]
-                info = re.sub(r'\n\n', r'\n', info)
-                candidate['info'] = info
+                candidate['info'] = result['documentation'][:256]
             if result.get('kind'):
                 candidate['kind'] = LSP_KINDS[result['kind'] - 1]
             candidates.append(candidate)
