@@ -16,3 +16,12 @@ Plug 'tbodt/deoplete-tabnine', { 'do': 'powershell.exe .\install.ps1' }
 
   [Deoplete]: https://github.com/Shougo/deoplete.nvim/
   [TabNine]: https://tabnine.com
+
+Configuration:
+
+```vim
+call deoplete#custom#var('tabnine', {
+\ 'line_limit': 500,
+\ 'max_num_results': 20,
+\ })
+```
