@@ -19,6 +19,17 @@ Plug 'tbodt/deoplete-tabnine', { 'do': 'powershell.exe .\install.ps1' }
 
 Configuration:
 
+line_limit
+			The buffer update limitation of the current source
+			code.
+			If the option is smaller, the performance may be
+			improved.
+			(default: 1000)
+
+max_num_results
+       			Max results from TabNine.
+			(default: 10)
+
 ```vim
 call deoplete#custom#var('tabnine', {
 \ 'line_limit': 500,
