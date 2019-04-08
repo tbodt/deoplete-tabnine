@@ -25,8 +25,7 @@ Plug 'tbodt/deoplete-tabnine', { 'do': 'powershell.exe .\install.ps1' }
 
 ### `line_limit`
 
-The buffer update limitation of the current source code.
-If the option is smaller, the performance may be improved.
+The number of lines before and after the cursor to send to TabNine. If the option is smaller, the performance may be improved.
 (default: 1000)
 
 ### `max_num_results`
