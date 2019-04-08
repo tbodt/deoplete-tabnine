@@ -1,6 +1,10 @@
 # deoplete-tabnine
 
+## Overview
+
 A [Deoplete][] source for [TabNine][].
+
+## Installation
 
 To install on Linux/macOS with vim-plug, first install Deoplete, then add this to your vimrc:
 
@@ -17,18 +21,18 @@ Plug 'tbodt/deoplete-tabnine', { 'do': 'powershell.exe .\install.ps1' }
   [Deoplete]: https://github.com/Shougo/deoplete.nvim/
   [TabNine]: https://tabnine.com
 
-Configuration:
+## Configuration
 
-line_limit
-			The buffer update limitation of the current source
-			code.
-			If the option is smaller, the performance may be
-			improved.
-			(default: 1000)
+### `line_limit`
 
-max_num_results
-       			Max results from TabNine.
-			(default: 10)
+The buffer update limitation of the current source code.
+If the option is smaller, the performance may be improved.
+(default: 1000)
+
+### `max_num_results`
+
+Max results from TabNine.
+(default: 10)
 
 ```vim
 call deoplete#custom#var('tabnine', {
