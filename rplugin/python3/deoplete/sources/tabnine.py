@@ -52,6 +52,10 @@ class Source(Base):
         self.min_pattern_length = 1
         self.is_volatile = True
         self.input_pattern = r'[^\w\s]$|TabNine::\w*$'
+        self.vars = {
+            'line_limit': 1000,
+            'max_num_results': 10,
+        }
 
         self._proc = None
         self._response = None
@@ -98,13 +102,13 @@ class Source(Base):
         return candidates
 
     def _get_response(self, context):
-        LINE_LIMIT = 1000
+        limit = self.get_var('line_limit')
         _, line, col, _ = context['position']
         last_line = self.vim.call('line', '$')
-        before_line = max(1, line - LINE_LIMIT)
+        before_line = max(1, line - limit)
         before_lines = getlines(self.vim, before_line, line)
         before_lines[-1] = before_lines[-1][:col-1]
-        after_line = min(last_line, line + LINE_LIMIT)
+        after_line = min(last_line, line + limit)
         after_lines = getlines(self.vim, line, after_line)
         after_lines[0] = after_lines[0][col:]
         return self._request(
@@ -114,7 +118,7 @@ class Source(Base):
             after='\n'.join(after_lines),
             region_includes_beginning=(before_line == 1),
             region_includes_end=(after_line == last_line),
-            max_num_results=10,
+            max_num_results=self.get_var('max_num_results'),
         )
 
     def _request(self, name, **params):
