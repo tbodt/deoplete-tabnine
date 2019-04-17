@@ -94,7 +94,9 @@ class Source(Base):
             if result.get('detail'):
                 candidate['menu'] = result['detail']
             if result.get('documentation'):
-                candidate['info'] = result['documentation']
+                doc = result['documentation']
+                candidate['info'] = (doc.get('value', '')
+                                     if isinstance(doc, dict) else doc)
             if result.get('kind'):
                 candidate['kind'] = LSP_KINDS[result['kind'] - 1]
             candidates.append(candidate)
