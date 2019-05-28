@@ -105,7 +105,7 @@ class Source(Base):
 
     def _get_response(self, context):
         limit = self.get_var('line_limit')
-        _, line, col, _ = context['position']
+        _, line, col, _ = self.vim.call('getpos', '.')
         last_line = self.vim.call('line', '$')
         before_line = max(1, line - limit)
         before_lines = getlines(self.vim, before_line, line)
