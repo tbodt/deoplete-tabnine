@@ -136,7 +136,7 @@ class Source(Base):
         try:
             proc.stdin.write((json.dumps(req) + '\n').encode('utf8'))
             proc.stdin.flush()
-        except Exception:
+        except BrokenPipeError:
             self.restart()
             return
 
