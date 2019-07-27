@@ -132,8 +132,14 @@ class Source(Base):
         proc = self._get_running_tabnine()
         if proc is None:
             return
-        proc.stdin.write((json.dumps(req) + '\n').encode('utf8'))
-        proc.stdin.flush()
+
+        try:
+            proc.stdin.write((json.dumps(req) + '\n').encode('utf8'))
+            proc.stdin.flush()
+        except BrokenPipeError:
+            self.restart()
+            return
+
         r = {}
         output = proc.stdout.readline().decode('utf8')
         try:
