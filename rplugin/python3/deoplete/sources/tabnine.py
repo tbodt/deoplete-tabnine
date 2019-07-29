@@ -5,7 +5,7 @@ import platform
 import subprocess
 
 from deoplete.source.base import Base
-from deoplete.util import getlines, error
+from deoplete.util import getlines
 
 LSP_KINDS = [
     'Text',
