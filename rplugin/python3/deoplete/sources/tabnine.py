@@ -93,6 +93,8 @@ class Source(Base):
                 candidate['word'] = word
             if result.get('detail'):
                 candidate['menu'] = result['detail']
+            if result.get('deprecated'):
+                candidate['menu'] = 'deprecated'
             if result.get('documentation'):
                 doc = result['documentation']
                 candidate['info'] = (doc.get('value', '')
