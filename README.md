@@ -12,9 +12,9 @@ To install it with vim-plug, first install Deoplete, then add this to your vimrc
 
 ```vim
 if has('win32') || has('win64')
-  Plug 'tbodt/deoplete-tabnine', { 'do': './install.sh' }
-else
   Plug 'tbodt/deoplete-tabnine', { 'do': 'powershell.exe .\install.ps1' }
+else
+  Plug 'tbodt/deoplete-tabnine', { 'do': './install.sh' }
 endif
 ```
 
