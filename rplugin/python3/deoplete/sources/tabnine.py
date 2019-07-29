@@ -122,7 +122,7 @@ class Source(Base):
 
     def _request(self, name, **params):
         req = {
-            'version': '1.0.0',
+            'version': '1.0.14',
             'request': {name: params}
         }
         self.debug(repr(req))
