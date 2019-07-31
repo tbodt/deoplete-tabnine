@@ -82,15 +82,12 @@ class Source(Base):
         candidates = []
         self.debug(repr(response))
         for result in response['results']:
-            candidate = {}
-            word = result['new_prefix']
-            suffix = result['old_suffix']
-            if suffix and word.endswith(suffix):
-                candidate['word'] = word[:len(word)-len(suffix)]
-                candidate['word'] += result['new_suffix']
-                candidate['abbr'] = word
-            else:
-                candidate['word'] = word
+            candidate = {'word': result['new_prefix']}
+            if result['old_suffix'] or result['new_suffix']:
+                candidate['user_data'] = json.dumps({
+                    'old_suffix': result['old_suffix'],
+                    'new_suffix': result['new_suffix'],
+                })
             if result.get('detail'):
                 candidate['menu'] = result['detail']
             if result.get('deprecated'):
@@ -127,7 +124,7 @@ class Source(Base):
 
     def _request(self, name, **params):
         req = {
-            'version': '1.0.0',
+            'version': '1.0.14',
             'request': {name: params}
         }
         self.debug(repr(req))
