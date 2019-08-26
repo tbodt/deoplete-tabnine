@@ -66,17 +66,21 @@ class Source(Base):
         m = re.search(r'\s+$', context['input'])
         if m:
             return -1
+
         self._response = self._get_response(context)
-        if self._response is None:
+        if not self._response:
             return -1
+
         old_prefix = self._response['old_prefix']
         if not context['input'].endswith(old_prefix):
             return -1
         return len(context['input']) - len(old_prefix)
 
     def gather_candidates(self, context):
-        response = self._response
+        if not self._response:
+            return []
 
+        response = self._response
         if 'promotional_message' in response:
             self.print(' '.join(response['promotional_message']))
         candidates = []
