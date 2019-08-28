@@ -148,7 +148,7 @@ class Source(Base):
         try:
             r = json.loads(output)
         except json.JSONDecodeError:
-            self.print_error('Tabnine output is corrupted: ' + output)
+            self.debug('Tabnine output is corrupted: ' + output)
         return r
 
     def _restart(self):
