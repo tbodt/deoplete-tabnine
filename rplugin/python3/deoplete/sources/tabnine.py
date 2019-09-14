@@ -77,7 +77,7 @@ class Source(Base):
         return len(context['input']) - len(old_prefix)
 
     def gather_candidates(self, context):
-        if not self._response:
+        if self._response is None or 'results' not in self._response:
             return []
 
         response = self._response
