@@ -68,7 +68,7 @@ class Source(Base):
             return -1
 
         self._response = self._get_response(context)
-        if not self._response:
+        if self._response is None or 'old_prefix' not in self._response:
             return -1
 
         old_prefix = self._response['old_prefix']
@@ -143,13 +143,11 @@ class Source(Base):
             self._restart()
             return
 
-        r = {}
         output = proc.stdout.readline().decode('utf8')
         try:
-            r = json.loads(output)
+            return json.loads(output)
         except json.JSONDecodeError:
             self.debug('Tabnine output is corrupted: ' + output)
-        return r
 
     def _restart(self):
         if self._proc is not None:
