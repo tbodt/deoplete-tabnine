@@ -18,6 +18,16 @@ else
 endif
 ```
 
+For [dein.vim](https://github.com/Shougo/dein.vim)
+
+```vim
+if has('win32') || has('win64')
+  call dein#add('tbodt/deoplete-tabnine', { 'build': 'powershell.exe .\install.ps1' })
+else
+  call dein#add('tbodt/deoplete-tabnine', { 'build': './install.sh' })
+endif
+```
+
 [Deoplete]: https://github.com/Shougo/deoplete.nvim/
 [TabNine]: https://tabnine.com
 
