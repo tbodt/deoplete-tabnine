@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash -e
 version=$(curl -sS https://update.tabnine.com/version)
 case $(uname -s) in
     "Darwin")
