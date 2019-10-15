@@ -144,7 +144,7 @@ class Source(Base):
             self._restart()
             return
 
-        output = proc.stdout.readline().decode('utf8')
+        output = proc.stdout.readline()
         try:
             return json.loads(output)
         except json.JSONDecodeError:
