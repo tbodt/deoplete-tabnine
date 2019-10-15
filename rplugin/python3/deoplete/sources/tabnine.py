@@ -165,6 +165,7 @@ class Source(Base):
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
+            encoding='utf-8',
         )
 
     def _get_running_tabnine(self):
