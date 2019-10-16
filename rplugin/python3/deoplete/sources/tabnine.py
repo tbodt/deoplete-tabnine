@@ -84,7 +84,6 @@ class Source(Base):
         if 'promotional_message' in response:
             self.print(' '.join(response['promotional_message']))
         candidates = []
-        #self.debug(repr(response))
         for result in response['results']:
             candidate = {'word': result['new_prefix']}
             if result['old_suffix'] or result['new_suffix']:
@@ -103,7 +102,6 @@ class Source(Base):
             if result.get('kind'):
                 candidate['kind'] = LSP_KINDS[result['kind'] - 1]
             candidates.append(candidate)
-        #self.debug(repr(candidates))
         return candidates
 
     def _get_response(self, context):
