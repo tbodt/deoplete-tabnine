@@ -158,7 +158,7 @@ class Source(Base):
             self.print_error('no TabNine binary found')
             return
         self._proc = subprocess.Popen(
-            [path, '--client', 'sublime', '--log-file-path',
+            [path, '--client', 'vscode', '--log-file-path',
              os.path.join(self._install_dir, 'tabnine.log')],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
