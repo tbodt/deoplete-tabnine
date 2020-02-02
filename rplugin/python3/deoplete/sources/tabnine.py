@@ -138,6 +138,8 @@ class Source(Base):
             json.dump(req, proc.stdin, ensure_ascii=False, check_circular=False)
             proc.stdin.write('\n')
             proc.stdin.flush()
+        except UnicodeError:
+            return
         except BrokenPipeError:
             self._restart()
             return
