@@ -110,10 +110,12 @@ class Source(Base):
         last_line = self.vim.call('line', '$')
         before_line = max(1, line - limit)
         before_lines = getlines(self.vim, before_line, line)
-        before_lines[-1] = before_lines[-1][:col-1]
+        if before_lines:
+            before_lines[-1] = before_lines[-1][:col-1]
         after_line = min(last_line, line + limit)
         after_lines = getlines(self.vim, line, after_line)
-        after_lines[0] = after_lines[0][col:]
+        if after_lines:
+            after_lines[0] = after_lines[0][col:]
         return self._request(
             'Autocomplete',
             filename=context['bufpath'],
