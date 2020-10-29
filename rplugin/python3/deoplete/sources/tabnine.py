@@ -3,6 +3,8 @@ import re
 import os
 import platform
 import subprocess
+import queue
+import threading
 
 from deoplete.source.base import Base
 from deoplete.util import getlines
@@ -34,6 +36,10 @@ LSP_KINDS = [
     'Operator',
     'TypeParameter',
 ]
+
+def output_reader(proc, outq):
+    for line in iter(proc.stdout.readline, b''):
+        outq.put(line)
 
 
 class Source(Base):
@@ -132,7 +138,7 @@ class Source(Base):
             'request': {name: params}
         }
         self.debug(repr(req))
-        proc = self._get_running_tabnine()
+        proc, rqueue = self._get_running_tabnine()
         if proc is None:
             return
 
@@ -144,9 +150,11 @@ class Source(Base):
             self._restart()
             return
 
-        output = proc.stdout.readline()
         try:
+            output = rqueue.get(block=True, timeout=1)
             return json.loads(output)
+        except queue.Empty:
+            self.debug('Tabnine output is corrupted: ' + output)
         except json.JSONDecodeError:
             self.debug('Tabnine output is corrupted: ' + output)
 
@@ -154,6 +162,8 @@ class Source(Base):
         if self._proc is not None:
             self._proc.terminate()
             self._proc = None
+            self._reader = None
+            self._queue = None
         binary_dir = os.path.join(self._install_dir, 'binaries')
         path = get_tabnine_path(binary_dir)
         if path is None:
@@ -166,7 +176,11 @@ class Source(Base):
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             encoding='utf-8',
+            close_fds=True,
         )
+        self._queue = queue.Queue()
+        self._reader = threading.Thread(target=output_reader, args=(self._proc, self._queue))
+        self._reader.start()
 
     def _get_running_tabnine(self):
         if self._proc is None:
@@ -175,7 +189,7 @@ class Source(Base):
             self.print_error(
                 'TabNine exited with code {}'.format(self._proc.returncode))
             self._restart()
-        return self._proc
+        return self._proc, self._queue
 
 
 # Adapted from the sublime plugin
@@ -189,7 +203,7 @@ def parse_semver(s):
 def get_tabnine_path(binary_dir):
     SYSTEM_MAPPING = {
         'Darwin': 'apple-darwin',
-        'Linux': 'unknown-linux-musl',
+        'Linux': 'unknown-linux-gnu',
         'Windows': 'pc-windows-gnu'
     }
     versions = os.listdir(binary_dir)
