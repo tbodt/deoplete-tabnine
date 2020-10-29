@@ -84,7 +84,6 @@ class Source(Base):
         if 'promotional_message' in response:
             self.print(' '.join(response['promotional_message']))
         candidates = []
-        self.debug(repr(response))
         for result in response['results']:
             candidate = {'word': result['new_prefix']}
             if result['old_suffix'] or result['new_suffix']:
@@ -103,7 +102,6 @@ class Source(Base):
             if result.get('kind'):
                 candidate['kind'] = LSP_KINDS[result['kind'] - 1]
             candidates.append(candidate)
-        self.debug(repr(candidates))
         return candidates
 
     def _get_response(self, context):
@@ -112,10 +110,12 @@ class Source(Base):
         last_line = self.vim.call('line', '$')
         before_line = max(1, line - limit)
         before_lines = getlines(self.vim, before_line, line)
-        before_lines[-1] = before_lines[-1][:col-1]
+        if before_lines:
+            before_lines[-1] = before_lines[-1][:col-1]
         after_line = min(last_line, line + limit)
         after_lines = getlines(self.vim, line, after_line)
-        after_lines[0] = after_lines[0][col:]
+        if after_lines:
+            after_lines[0] = after_lines[0][col:]
         return self._request(
             'Autocomplete',
             filename=context['bufpath'],
@@ -137,13 +137,14 @@ class Source(Base):
             return
 
         try:
-            proc.stdin.write((json.dumps(req) + '\n').encode('utf8'))
+            json.dump(req, proc.stdin, ensure_ascii=False, check_circular=False)
+            proc.stdin.write('\n')
             proc.stdin.flush()
         except BrokenPipeError:
             self._restart()
             return
 
-        output = proc.stdout.readline().decode('utf8')
+        output = proc.stdout.readline()
         try:
             return json.loads(output)
         except json.JSONDecodeError:
@@ -164,6 +165,7 @@ class Source(Base):
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
+            encoding='utf-8',
         )
 
     def _get_running_tabnine(self):
