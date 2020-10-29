@@ -7,7 +7,7 @@ case $(uname -s) in
         platform="apple-darwin"
         ;;
     "Linux")
-        platform="unknown-linux-musl"
+        platform="unknown-linux-gnu"
         ;;
 esac
 triple="$(uname -m)-$platform"
