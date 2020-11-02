@@ -3,8 +3,7 @@ import re
 import os
 import platform
 import subprocess
-import queue
-import threading
+import selectors
 
 from deoplete.source.base import Base
 from deoplete.util import getlines
@@ -139,7 +138,7 @@ class Source(Base):
             'request': {name: params}
         }
         self.debug(repr(req))
-        proc, rqueue = self._get_running_tabnine()
+        proc, selector = self._get_running_tabnine()
         if proc is None:
             return
 
@@ -152,12 +151,15 @@ class Source(Base):
             return
 
         try:
-            output = rqueue.get(block=True, timeout=0.5)
+            # try to read from proc's stdout
+            events = selector.select(timeout=0.5)
+            if len(events) == 0:
+                # nothing from TabNine. Restart it
+                self._restart()
+                return
+            # ok, we can read. we assume there is a single file attached to the selector.
+            output = proc.stdout.readline()
             return json.loads(output)
-        except queue.Empty:
-            self.debug('Queue is emty')
-            self._restart()
-            return self._request(name, **params)
         except json.JSONDecodeError:
             self.debug('Tabnine output is corrupted: ' + output)
 
@@ -165,8 +167,8 @@ class Source(Base):
         if self._proc is not None:
             self._proc.terminate()
             self._proc = None
-            self._reader = None
-            self._queue = None
+            self._selector.close()
+            self._selector = None
         binary_dir = os.path.join(self._install_dir, 'binaries')
         path = get_tabnine_path(binary_dir)
         if path is None:
@@ -181,8 +183,8 @@ class Source(Base):
             encoding='utf-8',
             close_fds=True,
         )
-        self._queue = queue.Queue()
-        self._reader = threading.Thread(target=output_reader, args=(self._proc, self._queue))
+        self._selector = selectors.DefaultSelector()
+        self._selector.register(self._proc.stdout, selectors.EVENT_READ)
         self._reader.start()
 
     def _get_running_tabnine(self):
@@ -192,7 +194,7 @@ class Source(Base):
             self.print_error(
                 'TabNine exited with code {}'.format(self._proc.returncode))
             self._restart()
-        return self._proc, self._queue
+        return self._proc, self._selector
 
 
 # Adapted from the sublime plugin
