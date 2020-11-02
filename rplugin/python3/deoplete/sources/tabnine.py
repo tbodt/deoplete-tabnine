@@ -36,11 +36,6 @@ LSP_KINDS = [
     'TypeParameter',
 ]
 
-def output_reader(proc, outq):
-    for line in iter(proc.stdout.readline, b''):
-        outq.put(line)
-    outq.put(b'')
-
 
 class Source(Base):
     def __init__(self, vim):
@@ -185,7 +180,6 @@ class Source(Base):
         )
         self._selector = selectors.DefaultSelector()
         self._selector.register(self._proc.stdout, selectors.EVENT_READ)
-        self._reader.start()
 
     def _get_running_tabnine(self):
         if self._proc is None:
