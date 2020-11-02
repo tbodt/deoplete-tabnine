@@ -40,6 +40,7 @@ LSP_KINDS = [
 def output_reader(proc, outq):
     for line in iter(proc.stdout.readline, b''):
         outq.put(line)
+    outq.put(b'')
 
 
 class Source(Base):
@@ -151,10 +152,12 @@ class Source(Base):
             return
 
         try:
-            output = rqueue.get(block=True, timeout=1)
+            output = rqueue.get(block=True, timeout=0.5)
             return json.loads(output)
         except queue.Empty:
-            self.debug('Tabnine output is corrupted: ' + output)
+            self.debug('Queue is emty')
+            self._restart()
+            return self._request(name, **params)
         except json.JSONDecodeError:
             self.debug('Tabnine output is corrupted: ' + output)
 
