@@ -147,7 +147,7 @@ class Source(Base):
 
         try:
             # try to read from proc's stdout
-            events = selector.select(timeout=0.5)
+            events = selector.select(timeout=1.0)
             if len(events) == 0:
                 # nothing from TabNine. Restart it
                 self._restart()
