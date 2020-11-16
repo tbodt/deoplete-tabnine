@@ -178,7 +178,7 @@ class Source(Base):
         self._proc = subprocess.Popen(
             [
                 path,
-                '--client', 'sublime',
+                '--client', 'deoplete',
                 '--log-file-path', os.path.join(self._install_dir, 'tabnine.log'),
                 '--idle_suicide_seconds', '3600',
             ],
