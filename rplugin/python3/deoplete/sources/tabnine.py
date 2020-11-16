@@ -4,6 +4,7 @@ import os
 import platform
 import subprocess
 import selectors
+import sys
 
 from deoplete.source.base import Base
 from deoplete.util import getlines
@@ -146,12 +147,14 @@ class Source(Base):
             return
 
         try:
-            # try to read from proc's stdout
-            events = selector.select(timeout=1.0)
-            if len(events) == 0:
-                # nothing from TabNine. Restart it
-                self._restart()
-                return
+            if self._selector is not None:
+                # try to read from proc's stdout
+                events = selector.select(timeout=1.0)
+                if len(events) == 0:
+                    # nothing from TabNine. Restart it
+                    self._restart()
+                    return
+
             # ok, we can read. we assume there is a single file attached to the selector.
             output = proc.stdout.readline()
             return json.loads(output)
@@ -162,8 +165,11 @@ class Source(Base):
         if self._proc is not None:
             self._proc.terminate()
             self._proc = None
+
+        if self._selector is not None:
             self._selector.close()
             self._selector = None
+
         binary_dir = os.path.join(self._install_dir, 'binaries')
         path = get_tabnine_path(binary_dir)
         if path is None:
@@ -182,8 +188,10 @@ class Source(Base):
             encoding='utf-8',
             close_fds=True,
         )
-        self._selector = selectors.DefaultSelector()
-        self._selector.register(self._proc.stdout, selectors.EVENT_READ)
+        if sys.platform != 'win32':
+            # Note: Windows doesn't support pipe selector.
+            self._selector = selectors.DefaultSelector()
+            self._selector.register(self._proc.stdout, selectors.EVENT_READ)
 
     def _get_running_tabnine(self):
         if self._proc is None:
