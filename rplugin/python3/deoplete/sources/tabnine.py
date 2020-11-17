@@ -61,8 +61,12 @@ class Source(Base):
 
         self._proc = None
         self._response = None
-        self._install_dir = os.path.dirname(os.path.dirname(os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
+        self._selector = None
+        self._install_dir = os.path.dirname(
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.dirname(
+                        os.path.dirname(os.path.realpath(__file__))))))
 
     def get_complete_position(self, context):
         m = re.search(r'\s+$', context['input'])
@@ -152,6 +156,7 @@ class Source(Base):
                 events = selector.select(timeout=1.0)
                 if len(events) == 0:
                     # nothing from TabNine. Restart it
+                    self.print_error('No output from TabNine. Restarting')
                     self._restart()
                     return
 
@@ -189,7 +194,7 @@ class Source(Base):
             close_fds=True,
         )
         if sys.platform != 'win32':
-            # Note: Windows doesn't support pipe selector.
+            # Note: Windows doesn't support select on pipe object.
             self._selector = selectors.DefaultSelector()
             self._selector.register(self._proc.stdout, selectors.EVENT_READ)
 
