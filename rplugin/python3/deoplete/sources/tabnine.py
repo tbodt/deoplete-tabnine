@@ -3,6 +3,8 @@ import re
 import os
 import platform
 import subprocess
+import selectors
+import sys
 
 from deoplete.source.base import Base
 from deoplete.util import getlines
@@ -59,8 +61,12 @@ class Source(Base):
 
         self._proc = None
         self._response = None
-        self._install_dir = os.path.dirname(os.path.dirname(os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
+        self._selector = None
+        self._install_dir = os.path.dirname(
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.dirname(
+                        os.path.dirname(os.path.realpath(__file__))))))
 
     def get_complete_position(self, context):
         m = re.search(r'\s+$', context['input'])
@@ -132,7 +138,7 @@ class Source(Base):
             'request': {name: params}
         }
         self.debug(repr(req))
-        proc = self._get_running_tabnine()
+        proc, selector = self._get_running_tabnine()
         if proc is None:
             return
 
@@ -144,8 +150,18 @@ class Source(Base):
             self._restart()
             return
 
-        output = proc.stdout.readline()
         try:
+            if self._selector is not None:
+                # try to read from proc's stdout
+                events = selector.select(timeout=1.0)
+                if len(events) == 0:
+                    # nothing from TabNine. Restart it
+                    self.print_error('No output from TabNine. Restarting')
+                    self._restart()
+                    return
+
+            # ok, we can read. we assume there is a single file attached to the selector.
+            output = proc.stdout.readline()
             return json.loads(output)
         except json.JSONDecodeError:
             self.debug('Tabnine output is corrupted: ' + output)
@@ -154,19 +170,33 @@ class Source(Base):
         if self._proc is not None:
             self._proc.terminate()
             self._proc = None
+
+        if self._selector is not None:
+            self._selector.close()
+            self._selector = None
+
         binary_dir = os.path.join(self._install_dir, 'binaries')
         path = get_tabnine_path(binary_dir)
         if path is None:
             self.print_error('no TabNine binary found')
             return
         self._proc = subprocess.Popen(
-            [path, '--client', 'sublime', '--log-file-path',
-             os.path.join(self._install_dir, 'tabnine.log')],
+            [
+                path,
+                '--client', 'deoplete',
+                '--log-file-path', os.path.join(self._install_dir, 'tabnine.log'),
+                '--idle_suicide_seconds', '3600',
+            ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             encoding='utf-8',
+            close_fds=True,
         )
+        if sys.platform != 'win32':
+            # Note: Windows doesn't support select on pipe object.
+            self._selector = selectors.DefaultSelector()
+            self._selector.register(self._proc.stdout, selectors.EVENT_READ)
 
     def _get_running_tabnine(self):
         if self._proc is None:
@@ -175,7 +205,7 @@ class Source(Base):
             self.print_error(
                 'TabNine exited with code {}'.format(self._proc.returncode))
             self._restart()
-        return self._proc
+        return self._proc, self._selector
 
 
 # Adapted from the sublime plugin
