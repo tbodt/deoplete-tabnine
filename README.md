@@ -40,14 +40,22 @@ The number of lines before and after the cursor to send to TabNine. If the
 option is smaller, the performance may be improved.  (default: 1000)
 
 
+### `max_bufsize`
+
+Max buffer size to enable TabNine completion.
+(default: 100 * 1024)
+
+
 ### `max_num_results`
 
 Max results from TabNine.
 (default: 10)
 
+
 ```vim
 call deoplete#custom#var('tabnine', {
 \ 'line_limit': 500,
+\ 'max_bufsize': 200 * 1024,
 \ 'max_num_results': 20,
 \ })
 ```

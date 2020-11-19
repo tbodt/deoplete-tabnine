@@ -56,6 +56,7 @@ class Source(Base):
         self.input_pattern = r'[^\w\s]$|TabNine::\w*$'
         self.vars = {
             'line_limit': 1000,
+            'max_bufsize': 100 * 1024,
             'max_num_results': 10,
         }
 
@@ -71,6 +72,11 @@ class Source(Base):
     def get_complete_position(self, context):
         m = re.search(r'\s+$', context['input'])
         if m:
+            return -1
+
+        bufsize = self.vim.call('wordcount')['bytes']
+        if bufsize > self.get_var('max_bufsize'):
+            # Buffer is too big
             return -1
 
         self._response = self._get_response(context)
