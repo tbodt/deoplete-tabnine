@@ -219,7 +219,7 @@ def parse_semver(s):
 def get_tabnine_path(binary_dir):
     SYSTEM_MAPPING = {
         'Darwin': 'apple-darwin',
-        'Linux': 'unknown-linux-gnu',
+        'Linux': 'unknown-linux-musl',
         'Windows': 'pc-windows-gnu'
     }
     versions = os.listdir(binary_dir)
