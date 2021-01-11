@@ -156,7 +156,7 @@ class Source(Base):
                 events = selector.select(timeout=1.0)
                 if len(events) == 0:
                     # nothing from TabNine. Restart it
-                    self.print_error('No output from TabNine. Restarting')
+                    self.debug('No output from TabNine. Restarting')
                     self._restart()
                     return
 
