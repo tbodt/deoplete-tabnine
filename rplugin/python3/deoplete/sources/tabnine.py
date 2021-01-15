@@ -55,7 +55,7 @@ class Source(Base):
         self.is_volatile = True
         self.input_pattern = r'[^\w\s]$|TabNine::\w*$'
         self.vars = {
-            'error_late_limit': 10,
+            'error_rate_limit': 10,
             'line_limit': 1000,
             'max_num_results': 10,
         }
@@ -159,7 +159,7 @@ class Source(Base):
                 if len(events) == 0:
                     # nothing from TabNine. Restart it
                     self._error_count += 1
-                    if self._error_count >= self.get_var('error_late_limit'):
+                    if self._error_count >= self.get_var('error_rate_limit'):
                         self._error_count = 0
                         self.print_error('No output from TabNine. Restarting')
                     else:
