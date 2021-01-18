@@ -3,11 +3,9 @@ set -o errexit
 
 version=$(curl -sS https://update.tabnine.com/version)
 
-targets='i686-pc-windows-gnu
-    i686-unknown-linux-musl
+targets='i686-unknown-linux-musl
     x86_64-apple-darwin
     aarch64-apple-darwin
-    x86_64-pc-windows-gnu
     x86_64-unknown-linux-musl'
 
 echo "$targets" | while read target
