@@ -2,11 +2,16 @@
 set -o errexit
 
 version=$(curl -sS https://update.tabnine.com/version)
-
-targets='i686-unknown-linux-musl
-    x86_64-apple-darwin
-    aarch64-apple-darwin
-    x86_64-unknown-linux-musl'
+case $(uname -s) in
+    'Darwin')
+        targets='x86_64-apple-darwin
+            aarch64-apple-darwin'
+        ;;
+    'Linux')
+        targets='i686-unknown-linux-musl
+            x86_64-unknown-linux-musl'
+        ;;
+esac
 
 echo "$targets" | while read target
 do
