@@ -8,8 +8,7 @@ case $(uname -s) in
             aarch64-apple-darwin'
         ;;
     'Linux')
-        targets='i686-unknown-linux-musl
-            x86_64-unknown-linux-musl'
+        targets="$(uname -m)-unknown-linux-musl"
         ;;
 esac
 
