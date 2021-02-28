@@ -243,6 +243,8 @@ def get_tabnine_path(binary_dir):
 def parse_architecture(arch):
     if arch == 'AMD64':
         return 'x86_64'
+    elif arch == 'arm64':
+        return 'aarch64'
     else:
         return arch
 

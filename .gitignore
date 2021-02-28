@@ -1,2 +1,4 @@
-binaries
 __pycache__
+binaries
+tabnine.log
+wd_log.txt
