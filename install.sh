@@ -24,5 +24,5 @@ do
     curl https://update.tabnine.com/bundles/$zip --create-dirs -o binaries/$zip
     cd $(dirname binaries/$zip)
     unzip -o TabNine.zip
-    chmod +x TabNine
+    chmod +x *
 done
