@@ -28,6 +28,7 @@ if (!(Test-Path -Path "$path\TabNine.exe"))  {
     )
   )
   Expand-Archive -Force -Path "$path\TabNine.zip" -DestinationPath "$path"
+  Remove-Item "$path\TabNine.zip"
   Write-Host "Successful!"
   }
   Catch {
