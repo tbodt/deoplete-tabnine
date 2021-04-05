@@ -15,11 +15,14 @@ esac
 echo "$targets" | while read target
 do
     cd $(dirname $0)
+    zip=$version/$target/TabNine.zip
     path=$version/$target/TabNine
     if [ -f binaries/$path ]; then
         exit
     fi
     echo Downloading version $version $target
-    curl https://update.tabnine.com/bundles/$path --create-dirs -o binaries/$path
-    chmod +x binaries/$path
+    curl https://update.tabnine.com/bundles/$zip --create-dirs -o binaries/$zip
+    cd $(dirname binaries/$zip)
+    unzip -o TabNine.zip
+    chmod +x TabNine
 done
