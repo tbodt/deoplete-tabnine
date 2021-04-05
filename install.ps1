@@ -15,7 +15,7 @@ $triple = ( $arch + "-pc-windows-gnu" )
 
 $path = "$PSScriptRoot\binaries\$version\$triple"
 
-$url = ( "https://update.tabnine.com/bundles/$version/$triple/TabNine.exe" )
+$url = ( "https://update.tabnine.com/bundles/$version/$triple/TabNine.zip" )
 if (!(Test-Path -Path "$path\TabNine.exe"))  {
   Write-Host "Downloading TabNine executable..."
   New-Item -ItemType directory -Path $path
@@ -24,9 +24,10 @@ if (!(Test-Path -Path "$path\TabNine.exe"))  {
   $web.DownloadFile(
     $url,
     $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath(
-      "$path\TabNine.exe"
+      "$path\TabNine.zip"
     )
   )
+  Expand-Archive -Force -Path "$path\TabNine.zip" -DestinationPath "$path"
   Write-Host "Successful!"
   }
   Catch {
