@@ -18,7 +18,7 @@ do
     zip=$version/$target/TabNine.zip
     path=$version/$target/TabNine
     if [ -f binaries/$path ]; then
-        exit
+        continue
     fi
     echo Downloading version $version $target
     curl https://update.tabnine.com/bundles/$zip --create-dirs -o binaries/$zip
