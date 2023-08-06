@@ -192,7 +192,6 @@ class Source(Base):
                 path,
                 '--client', 'deoplete',
                 '--log-file-path', os.path.join(self._install_dir, 'tabnine.log'),
-                '--idle_suicide_seconds', '3600',
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
